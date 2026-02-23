@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Register | Gnouby Perfumes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nubian: {
+                            gold: '#F5A623',
+                            brown: '#1B4D4D',
+                            sand: '#E6D5B8',
+                            terracotta: '#C65D3B',
+                            earth: '#5D4E37',
+                            cream: '#F5F0E6',
+                            dark: '#1A1510',
+                            primary: '#1B4D4D',
+                            accent: '#F5A623'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; }
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-nubian-cream dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors duration-300 nubian-pattern min-h-screen flex items-center justify-center py-12 px-4">
+    
+    <div class="max-w-md w-full">
+        <div class="text-center mb-8">
+            <a href="index.html" class="inline-flex flex-col items-center">
+                <div class="relative w-20 h-20 mb-3">
+                    <img src="images/logo-light.png" alt="Gnouby Perfumes" class="absolute inset-0 w-full h-full object-contain logo-light">
+                    <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="absolute inset-0 w-full h-full object-contain logo-dark">
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name text-2xl">Gnouby</span>
+                    <span class="brand-tagline text-sm">Perfumes</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="bg-white dark:bg-nubian-earth rounded-2xl shadow-2xl p-8 border border-nubian-gold/20">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel mb-2">Create Account</h2>
+                <p class="text-nubian-earth dark:text-nubian-sand text-sm">Join the Gnouby family today</p>
+            </div>
+
+            <form id="register-form" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-2">Full Name</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nubian-gold">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" id="fullName" class="w-full pl-10 pr-4 py-3 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors" placeholder="Enter your full name" required>
+                    </div>
+                    <p id="fullName-error" class="text-nubian-terracotta text-sm mt-1 hidden"></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-2">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nubian-gold">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" id="email" class="w-full pl-10 pr-4 py-3 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors" placeholder="Enter your email" required>
+                    </div>
+                    <p id="email-error" class="text-nubian-terracotta text-sm mt-1 hidden"></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-2">Password</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nubian-gold">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" id="password" class="w-full pl-10 pr-12 py-3 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors" placeholder="Create a password" required>
+                        <button type="button" id="toggle-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-nubian-gold hover:text-nubian-brown">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <div class="flex gap-1 mb-1">
+                            <div id="strength-1" class="flex-1 password-strength bg-gray-200"></div>
+                            <div id="strength-2" class="flex-1 password-strength bg-gray-200"></div>
+                            <div id="strength-3" class="flex-1 password-strength bg-gray-200"></div>
+                            <div id="strength-4" class="flex-1 password-strength bg-gray-200"></div>
+                        </div>
+                        <p id="password-hint" class="text-xs text-nubian-earth dark:text-nubian-sand">Use 8+ characters with letters, numbers & symbols</p>
+                    </div>
+                    <p id="password-error" class="text-nubian-terracotta text-sm mt-1 hidden"></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-2">Confirm Password</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nubian-gold">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" id="confirmPassword" class="w-full pl-10 pr-12 py-3 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors" placeholder="Confirm your password" required>
+                        <button type="button" id="toggle-confirm-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-nubian-gold hover:text-nubian-brown">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p id="confirmPassword-error" class="text-nubian-terracotta text-sm mt-1 hidden"></p>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="terms" class="w-4 h-4 text-nubian-gold border-nubian-sand rounded focus:ring-nubian-gold" required>
+                    <label for="terms" class="ml-2 text-sm text-nubian-earth dark:text-nubian-sand">
+                        I agree to the <a href="#" class="text-nubian-gold hover:underline">Terms of Service</a> and <a href="#" class="text-nubian-gold hover:underline">Privacy Policy</a>
+                    </label>
+                </div>
+                <p id="terms-error" class="text-nubian-terracotta text-sm hidden"></p>
+
+                <button type="submit" id="submit-btn" class="w-full py-3 bg-nubian-brown text-white font-bold rounded-lg hover:bg-nubian-gold hover:text-nubian-dark transition-all transform hover:scale-[1.02] shadow-lg">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-nubian-earth dark:text-nubian-sand text-sm">
+                    Already have an account? 
+                    <a href="login.html" class="text-nubian-gold font-semibold hover:underline">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center mt-6">
+            <a href="index.html" class="inline-flex items-center text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <button id="dark-mode-toggle" class="fixed top-4 right-4 p-3 rounded-full bg-white dark:bg-nubian-earth shadow-lg border border-nubian-gold/30 hover:scale-110 transition-transform">
+        <i class="fas fa-moon text-nubian-brown dark:text-nubian-gold text-xl"></i>
+    </button>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/register.js"></script>
+</body>
+</html>

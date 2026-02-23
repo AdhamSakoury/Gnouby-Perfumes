@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>My Wishlist | Gnouby Perfumes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nubian: {
+                            gold: '#F5A623',
+                            brown: '#1B4D4D',
+                            sand: '#E6D5B8',
+                            terracotta: '#C65D3B',
+                            earth: '#5D4E37',
+                            cream: '#F5F0E6',
+                            dark: '#1A1510',
+                            primary: '#1B4D4D',
+                            accent: '#F5A623'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; }
+        
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: #1B4D4D;
+            color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .toast.active {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: #10B981;
+        }
+        
+        .dark .toast {
+            background: #F5A623;
+            color: #1A1510;
+        }
+    </style>
+</head>
+<body class="bg-nubian-cream dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors duration-300 nubian-pattern min-h-screen">
+    
+    <nav class="fixed w-full z-50 bg-white/90 dark:bg-nubian-dark/90 backdrop-blur-md border-b border-nubian-gold/30 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo-light.png" alt="Gnouby Perfumes" class="logo-image logo-light">
+                    <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="logo-image logo-dark">
+                    <div class="brand-text">
+                        <span class="brand-name">Gnouby</span>
+                        <span class="brand-tagline">Perfumes</span>
+                    </div>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Home</a>
+                    <a href="perfumes.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Perfumes</a>
+                    <a href="wishlist.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Wishlist</a>
+                    <a href="cart.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors relative">
+                        Cart <span id="cart-count" class="absolute -top-2 -right-2 bg-nubian-terracotta text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">
+                        <i class="fas fa-moon text-nubian-brown dark:text-nubian-gold text-xl"></i>
+                    </button>
+                    
+                    <div id="auth-buttons" class="hidden md:flex items-center space-x-3">
+                        <a href="login.html" class="px-4 py-2 text-nubian-brown dark:text-nubian-gold border border-nubian-brown dark:border-nubian-gold rounded-lg hover:bg-nubian-brown hover:text-white transition-all">Login</a>
+                    </div>
+
+                    <div id="user-menu" class="hidden relative">
+                        <button id="user-dropdown-btn" class="flex items-center space-x-2 text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span id="user-name" class="font-medium"></span>
+                        </button>
+                        <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-nubian-dark rounded-lg shadow-xl border border-nubian-gold/30 hidden">
+                            <a href="account.html" class="block px-4 py-2 text-nubian-brown dark:text-nubian-sand hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">My Account</a>
+                            <button id="logout-btn-nav" class="w-full text-left px-4 py-2 text-nubian-terracotta hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">My Wishlist</h1>
+            <div class="w-24 h-1 bg-nubian-gold mx-auto rounded-full"></div>
+            <p class="mt-4 text-nubian-earth dark:text-nubian-sand">Your saved favorites</p>
+        </div>
+
+        <div id="login-required" class="hidden text-center py-20">
+            <i class="fas fa-lock text-6xl text-nubian-terracotta mb-4"></i>
+            <h2 class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">Login Required</h2>
+            <p class="text-nubian-earth dark:text-nubian-sand mb-6">Please login to view your wishlist</p>
+            <a href="login.html?redirect=wishlist.html" class="inline-flex items-center px-6 py-3 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-all">
+                Login to Continue
+            </a>
+        </div>
+
+        <div id="empty-wishlist" class="hidden text-center py-20">
+            <i class="fas fa-heart text-6xl text-nubian-sand mb-4"></i>
+            <h2 class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">Your Wishlist is Empty</h2>
+            <p class="text-nubian-earth dark:text-nubian-sand mb-6">Save your favorite perfumes here</p>
+            <a href="perfumes.html" class="inline-flex items-center px-6 py-3 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-all">
+                Explore Perfumes
+            </a>
+        </div>
+
+        <div id="wishlist-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Wishlist items will be loaded here dynamically -->
+        </div>
+    </main>
+
+    <footer class="bg-nubian-dark text-nubian-sand py-8 border-t border-nubian-gold/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-nubian-sand/60">&copy; 2024 Gnouby Perfumes. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Perfumes | Gnouby Perfumes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nubian: {
+                            gold: '#F5A623',
+                            brown: '#1B4D4D',
+                            sand: '#E6D5B8',
+                            terracotta: '#C65D3B',
+                            earth: '#5D4E37',
+                            cream: '#F5F0E6',
+                            dark: '#1A1510',
+                            primary: '#1B4D4D',
+                            accent: '#F5A623'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; }
+
+        /* Collapsible Sidebar Styles */
+        .filter-sidebar {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .filter-sidebar.collapsed {
+            width: 60px !important;
+            min-width: 60px !important;
+        }
+
+        .filter-sidebar.expanded {
+            width: 280px;
+            min-width: 280px;
+        }
+
+        .filter-sidebar.collapsed .sidebar-content,
+        .filter-sidebar.collapsed .sidebar-header-text,
+        .filter-sidebar.collapsed .reset-btn {
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+        }
+
+        .filter-sidebar.collapsed .sidebar-toggle {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-toggle {
+            transition: transform 0.3s ease;
+        }
+
+        /* Custom Checkbox Styling */
+        .custom-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #1B4D4D;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .dark .custom-checkbox {
+            border-color: #F5A623;
+            background: #2C2416;
+        }
+
+        .custom-checkbox:checked {
+            background: linear-gradient(145deg, #1B4D4D 0%, #2A6B6B 100%);
+            border-color: #1B4D4D;
+        }
+
+        .dark .custom-checkbox:checked {
+            background: linear-gradient(145deg, #F5A623 0%, #FFB84D 100%);
+            border-color: #F5A623;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+        }
+
+        .dark .custom-checkbox:checked::after {
+            color: #1A1510;
+        }
+
+        /* Rating Stars in Filter */
+        .rating-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .rating-option:hover {
+            background: rgba(245, 166, 35, 0.1);
+            border-color: rgba(245, 166, 35, 0.3);
+        }
+
+        .rating-option input[type="radio"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #1B4D4D;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .dark .rating-option input[type="radio"] {
+            border-color: #F5A623;
+        }
+
+        .rating-option input[type="radio"]:checked {
+            background: #1B4D4D;
+            border-color: #1B4D4D;
+            box-shadow: 0 0 0 3px rgba(27, 77, 77, 0.2);
+        }
+
+        .dark .rating-option input[type="radio"]:checked {
+            background: #F5A623;
+            border-color: #F5A623;
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.2);
+        }
+
+        .rating-option input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .dark .rating-option input[type="radio"]:checked::after {
+            background: #1A1510;
+        }
+
+        /* Mobile Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 40;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Mobile Sidebar - COMPLETELY FIXED */
+        @media (max-width: 1023px) {
+            .filter-sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                bottom: 0 !important;
+                height: 100vh !important;
+                height: 100dvh !important;
+                width: 85% !important;
+                max-width: 320px !important;
+                z-index: 50 !important;
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                background: transparent !important;
+            }
+
+            .filter-sidebar.mobile-open {
+                transform: translateX(0) !important;
+            }
+
+            .filter-sidebar > div {
+                border-radius: 0 !important;
+                height: 100% !important;
+                min-height: 100vh !important;
+                min-height: 100dvh !important;
+                margin: 0 !important;
+                border: none !important;
+            }
+
+            /* Hide collapsed state styles on mobile */
+            .filter-sidebar.collapsed {
+                width: 85% !important;
+                min-width: auto !important;
+            }
+
+            .filter-sidebar.collapsed .sidebar-content,
+            .filter-sidebar.collapsed .sidebar-header-text,
+            .filter-sidebar.collapsed .reset-btn {
+                opacity: 1 !important;
+                visibility: visible !important;
+                position: relative !important;
+            }
+        }
+
+        /* Desktop Sidebar */
+        @media (min-width: 1024px) {
+            .filter-sidebar {
+                position: relative;
+                height: fit-content;
+                max-height: none;
+                transform: none !important;
+            }
+
+            .filter-sidebar > div {
+                height: auto;
+                max-height: none;
+            }
+
+            .sidebar-content {
+                max-height: none !important;
+                overflow-y: visible !important;
+            }
+
+            /* Hide mobile close button on desktop */
+            #close-sidebar-mobile {
+                display: none !important;
+            }
+        }
+
+        /* Brand filters - NO SCROLLBAR */
+        #brand-filters {
+            max-height: none !important;
+            overflow-y: visible !important;
+            padding-right: 0;
+        }
+
+        #brand-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        #brand-filters {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Filter indicator bar */
+        .filter-indicator {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 40px;
+            background: #F5A623;
+            border-radius: 0 4px 4px 0;
+            transition: opacity 0.3s;
+        }
+
+        .filter-sidebar.collapsed .filter-indicator {
+            opacity: 1;
+        }
+
+        .filter-sidebar.expanded .filter-indicator {
+            opacity: 0;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: #1B4D4D;
+            color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toast.active {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: #10B981;
+        }
+
+        .dark .toast {
+            background: #F5A623;
+            color: #1A1510;
+        }
+
+        /* PRICE RANGE SLIDER STYLES */
+        .price-range-container {
+            padding: 10px 0;
+        }
+
+        .price-slider-track {
+            position: relative;
+            height: 6px;
+            background: #E6D5B8;
+            border-radius: 3px;
+            margin: 20px 10px;
+            cursor: pointer;
+        }
+
+        .dark .price-slider-track {
+            background: #5D4E37;
+        }
+
+        .price-slider-range {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, #1B4D4D, #F5A623);
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .price-slider-thumb {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #F5A623;
+            border: 3px solid #1B4D4D;
+            border-radius: 50%;
+            cursor: grab;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s, box-shadow 0.2s;
+            z-index: 2;
+        }
+
+        .dark .price-slider-thumb {
+            border-color: #F5A623;
+            background: #1B4D4D;
+        }
+
+        .price-slider-thumb:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 0 8px rgba(245, 166, 35, 0.2);
+        }
+
+        .price-slider-thumb.active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.3);
+            box-shadow: 0 0 0 10px rgba(245, 166, 35, 0.3);
+        }
+
+        .price-inputs {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .price-input-group {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #E6D5B8;
+            border-radius: 8px;
+            padding: 5px 10px;
+            flex: 1;
+        }
+
+        .dark .price-input-group {
+            background: #2C2416;
+            border-color: #5D4E37;
+        }
+
+        .price-input-group span {
+            color: #1B4D4D;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .dark .price-input-group span {
+            color: #F5A623;
+        }
+
+        .price-input-group input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-size: 14px;
+            color: #1B4D4D;
+            outline: none;
+        }
+
+        .dark .price-input-group input {
+            color: #E6D5B8;
+        }
+
+        .price-separator {
+            color: #1B4D4D;
+            font-weight: bold;
+        }
+
+        .dark .price-separator {
+            color: #F5A623;
+        }
+
+        /* Main layout fixes */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 1024px) {
+            .main-layout {
+                flex-direction: row;
+                gap: 2rem;
+            }
+        }
+
+        /* Ensure no horizontal scroll */
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-nubian-cream dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors duration-300 min-h-screen">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay lg:hidden"></div>
+
+    <nav class="fixed w-full z-50 bg-white/90 dark:bg-nubian-dark/90 backdrop-blur-md border-b border-nubian-gold/30 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo-light.png" alt="Gnouby Perfumes" class="logo-image logo-light">
+                    <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="logo-image logo-dark">
+                    <div class="brand-text">
+                        <span class="brand-name">Gnouby</span>
+                        <span class="brand-tagline">Perfumes</span>
+                    </div>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Home</a>
+                    <a href="perfumes.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Perfumes</a>
+                    <a href="wishlist.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Wishlist</a>
+                    <a href="cart.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors relative">
+                        Cart <span id="cart-count" class="absolute -top-2 -right-2 bg-nubian-terracotta text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">
+                        <i class="fas fa-moon text-nubian-brown dark:text-nubian-gold text-xl"></i>
+                    </button>
+
+                    <div id="auth-buttons" class="hidden md:flex items-center space-x-3">
+                        <a href="login.html" class="px-4 py-2 text-nubian-brown dark:text-nubian-gold border border-nubian-brown dark:border-nubian-gold rounded-lg hover:bg-nubian-brown hover:text-white transition-all">Login</a>
+                    </div>
+
+                    <div id="user-menu" class="hidden relative">
+                        <button id="user-dropdown-btn" class="flex items-center space-x-2 text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span id="user-name" class="font-medium"></span>
+                        </button>
+                        <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-nubian-dark rounded-lg shadow-xl border border-nubian-gold/30 hidden">
+                            <a href="account.html" class="block px-4 py-2 text-nubian-brown dark:text-nubian-sand hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">My Account</a>
+                            <button id="logout-btn-nav" class="w-full text-left px-4 py-2 text-nubian-terracotta hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">Our Collection</h1>
+            <div class="w-24 h-1 bg-nubian-gold mx-auto rounded-full"></div>
+            <p class="mt-4 text-nubian-earth dark:text-nubian-sand max-w-2xl mx-auto">
+                Discover our curated selection of luxury Nubian-inspired fragrances
+            </p>
+        </div>
+
+        <!-- Mobile Filter Toggle Button -->
+        <div class="lg:hidden mb-6">
+            <button id="filter-toggle-btn-mobile" class="flex items-center gap-2 px-6 py-3 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-all shadow-lg">
+                <i class="fas fa-filter"></i>
+                <span>Filters</span>
+                <span id="active-filters-count-mobile" class="hidden bg-nubian-terracotta text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+            </button>
+        </div>
+
+        <!-- Main Content Area - Fixed layout -->
+        <div class="main-layout">
+            <!-- Filters Sidebar -->
+            <aside id="filter-sidebar" class="filter-sidebar expanded relative">
+                <div class="bg-white dark:bg-nubian-earth shadow-lg border-r border-nubian-gold/20 h-full lg:rounded-2xl lg:border lg:h-fit">
+                    <!-- Filter Indicator (visible when collapsed) -->
+                    <div class="filter-indicator hidden lg:block"></div>
+
+                    <!-- Sidebar Header with Toggle -->
+                    <div class="sidebar-header flex items-center justify-between p-4 border-b border-nubian-gold/20">
+                        <div class="sidebar-header-text flex items-center gap-2">
+                            <i class="fas fa-filter text-nubian-gold"></i>
+                            <h3 class="text-lg font-bold text-nubian-brown dark:text-nubian-gold font-cinzel">Filters</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="reset-filters" class="reset-btn text-sm text-nubian-terracotta hover:underline">Reset</button>
+                            <button id="sidebar-toggle" class="sidebar-toggle hidden lg:flex w-8 h-8 items-center justify-center rounded-lg bg-nubian-sand/30 dark:bg-nubian-dark/30 hover:bg-nubian-gold/20 transition-colors">
+                                <i class="fas fa-chevron-left text-nubian-brown dark:text-nubian-gold"></i>
+                            </button>
+                            <button id="close-sidebar-mobile" class="lg:hidden p-2 text-nubian-brown dark:text-nubian-sand hover:text-nubian-terracotta">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Content -->
+                    <div class="sidebar-content p-4 space-y-6 overflow-y-auto" style="max-height: calc(100vh - 80px);">
+
+                        <!-- Price Range Filter -->
+                        <div>
+                            <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-4 text-sm uppercase tracking-wider">Price Range</h4>
+                            <div class="price-range-container">
+                                <div class="price-slider-track" id="price-track">
+                                    <div class="price-slider-range" id="price-range-bar"></div>
+                                    <div class="price-slider-thumb" id="thumb-min" data-value="0"></div>
+                                    <div class="price-slider-thumb" id="thumb-max" data-value="1000"></div>
+                                </div>
+                                <div class="price-inputs">
+                                    <div class="price-input-group">
+                                        <span>$</span>
+                                        <input type="number" id="price-min-input" value="0" min="0" max="1000">
+                                    </div>
+                                    <span class="price-separator">-</span>
+                                    <div class="price-input-group">
+                                        <span>$</span>
+                                        <input type="number" id="price-max-input" value="1000" min="0" max="1000">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gender Filter -->
+                        <div>
+                            <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-4 text-sm uppercase tracking-wider">Gender</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="checkbox" class="custom-checkbox filter-gender" value="Men">
+                                    <span class="text-nubian-earth dark:text-nubian-sand group-hover:text-nubian-gold transition-colors text-sm">Men</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="checkbox" class="custom-checkbox filter-gender" value="Women">
+                                    <span class="text-nubian-earth dark:text-nubian-sand group-hover:text-nubian-gold transition-colors text-sm">Women</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="checkbox" class="custom-checkbox filter-gender" value="Unisex">
+                                    <span class="text-nubian-earth dark:text-nubian-sand group-hover:text-nubian-gold transition-colors text-sm">Unisex</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Rating Filter -->
+                        <div>
+                            <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-4 text-sm uppercase tracking-wider">Minimum Rating</h4>
+                            <div class="space-y-2">
+                                <label class="rating-option">
+                                    <input type="radio" name="rating" class="filter-rating" value="4.5">
+                                    <div class="flex text-nubian-gold text-xs">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="text-sm text-nubian-earth dark:text-nubian-sand">4.5+</span>
+                                </label>
+                                <label class="rating-option">
+                                    <input type="radio" name="rating" class="filter-rating" value="4">
+                                    <div class="flex text-nubian-gold text-xs">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="text-sm text-nubian-earth dark:text-nubian-sand">4+</span>
+                                </label>
+                                <label class="rating-option">
+                                    <input type="radio" name="rating" class="filter-rating" value="3">
+                                    <div class="flex text-nubian-gold text-xs">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="text-sm text-nubian-earth dark:text-nubian-sand">3+</span>
+                                </label>
+                                <label class="rating-option">
+                                    <input type="radio" name="rating" class="filter-rating" value="0" checked>
+                                    <span class="text-sm text-nubian-earth dark:text-nubian-sand">Any Rating</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Brand Filter -->
+                        <div>
+                            <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-4 text-sm uppercase tracking-wider">Brand</h4>
+                            <div id="brand-filters" class="space-y-3">
+                                <!-- Brands loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Products Grid -->
+            <div class="flex-1 min-w-0 w-full">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <p class="text-nubian-earth dark:text-nubian-sand">Showing <span id="showing-count">0</span> perfumes</p>
+                    <select id="sort-select" class="px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand focus:outline-none focus:border-nubian-gold">
+                        <option value="default">Sort by</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="name">Name: A-Z</option>
+                    </select>
+                </div>
+
+                <div id="perfumes-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                </div>
+
+                <div id="no-results" class="hidden text-center py-12">
+                    <i class="fas fa-search text-6xl text-nubian-sand mb-4"></i>
+                    <h3 class="text-xl font-bold text-nubian-brown dark:text-nubian-gold mb-2">No perfumes found</h3>
+                    <p class="text-nubian-earth dark:text-nubian-sand">Try adjusting your filters</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-nubian-dark text-nubian-sand py-8 border-t border-nubian-gold/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-nubian-sand/60">&copy; 2024 Gnouby Perfumes. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/perfumes.js"></script>
+    <script src="js/navigation.js"></script>
+</body>
+</html>

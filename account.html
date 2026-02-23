@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>My Account | Gnouby Perfumes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nubian: {
+                            gold: '#F5A623',
+                            brown: '#1B4D4D',
+                            sand: '#E6D5B8',
+                            terracotta: '#C65D3B',
+                            earth: '#5D4E37',
+                            cream: '#F5F0E6',
+                            dark: '#1A1510',
+                            primary: '#1B4D4D',
+                            accent: '#F5A623'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .dark .modal-content {
+            background: #2C2416;
+        }
+        
+        .modal-overlay:not(.hidden) .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: #1B4D4D;
+            color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .toast.active {
+            transform: translateX(0);
+        }
+        
+        .toast.error {
+            background: #EF4444;
+        }
+        
+        .dark .toast {
+            background: #F5A623;
+            color: #1A1510;
+        }
+        
+        .dark .toast.error {
+            background: #EF4444;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-nubian-cream dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors duration-300 nubian-pattern min-h-screen">
+    
+    <nav class="fixed w-full z-50 bg-white/90 dark:bg-nubian-dark/90 backdrop-blur-md border-b border-nubian-gold/30 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo-light.png" alt="Gnouby Perfumes" class="logo-image logo-light">
+                    <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="logo-image logo-dark">
+                    <div class="brand-text">
+                        <span class="brand-name">Gnouby</span>
+                        <span class="brand-tagline">Perfumes</span>
+                    </div>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Home</a>
+                    <a href="perfumes.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Perfumes</a>
+                    <a href="wishlist.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Wishlist</a>
+                    <a href="cart.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors relative">
+                        Cart <span id="cart-count" class="absolute -top-2 -right-2 bg-nubian-terracotta text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">
+                        <i class="fas fa-moon text-nubian-brown dark:text-nubian-gold text-xl"></i>
+                    </button>
+                    <button id="logout-btn" class="px-4 py-2 bg-nubian-terracotta text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel mb-2">
+                Welcome, <span id="user-name-display">User</span>!
+            </h1>
+            <p class="text-nubian-earth dark:text-nubian-sand">Manage your account and explore your personalized dashboard</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-nubian-earth rounded-2xl shadow-lg p-6 border border-nubian-gold/20">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-16 h-16 bg-nubian-brown rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-nubian-gold text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-nubian-brown dark:text-nubian-gold">Profile</h3>
+                        <p class="text-sm text-nubian-earth dark:text-nubian-sand" id="user-email-display">user@example.com</p>
+                    </div>
+                </div>
+                <button id="edit-profile-btn" class="w-full py-2 border border-nubian-gold text-nubian-gold rounded-lg hover:bg-nubian-gold hover:text-nubian-dark transition-colors">
+                    Edit Profile
+                </button>
+            </div>
+
+            <div class="bg-white dark:bg-nubian-earth rounded-2xl shadow-lg p-6 border border-nubian-gold/20">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-16 h-16 bg-nubian-gold/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-shopping-bag text-nubian-gold text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-nubian-brown dark:text-nubian-gold">Orders</h3>
+                        <p class="text-sm text-nubian-earth dark:text-nubian-sand">View your order history</p>
+                    </div>
+                </div>
+                <button class="w-full py-2 border border-nubian-gold text-nubian-gold rounded-lg hover:bg-nubian-gold hover:text-nubian-dark transition-colors">
+                    View Orders
+                </button>
+            </div>
+
+            <div class="bg-white dark:bg-nubian-earth rounded-2xl shadow-lg p-6 border border-nubian-gold/20">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-16 h-16 bg-nubian-terracotta/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-heart text-nubian-terracotta text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-nubian-brown dark:text-nubian-gold">Wishlist</h3>
+                        <p class="text-sm text-nubian-earth dark:text-nubian-sand"><span id="wishlist-count">0</span> items saved</p>
+                    </div>
+                </div>
+                <a href="wishlist.html" class="block w-full py-2 border border-nubian-gold text-nubian-gold rounded-lg hover:bg-nubian-gold hover:text-nubian-dark transition-colors text-center">
+                    View Wishlist
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-nubian-earth rounded-2xl shadow-lg p-6 border border-nubian-gold/20 mb-8">
+            <h3 class="text-xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">Quick Actions</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="cart.html" class="flex flex-col items-center p-4 rounded-xl bg-nubian-sand/30 dark:bg-nubian-dark/30 hover:bg-nubian-gold/20 transition-colors">
+                    <i class="fas fa-shopping-cart text-2xl text-nubian-brown dark:text-nubian-gold mb-2"></i>
+                    <span class="text-sm font-medium">My Cart</span>
+                </a>
+                <a href="wishlist.html" class="flex flex-col items-center p-4 rounded-xl bg-nubian-sand/30 dark:bg-nubian-dark/30 hover:bg-nubian-gold/20 transition-colors">
+                    <i class="fas fa-heart text-2xl text-nubian-terracotta mb-2"></i>
+                    <span class="text-sm font-medium">Wishlist</span>
+                </a>
+                <a href="perfumes.html" class="flex flex-col items-center p-4 rounded-xl bg-nubian-sand/30 dark:bg-nubian-dark/30 hover:bg-nubian-gold/20 transition-colors">
+                    <i class="fas fa-search text-2xl text-nubian-brown dark:text-nubian-gold mb-2"></i>
+                    <span class="text-sm font-medium">Browse</span>
+                </a>
+                <a href="#" class="flex flex-col items-center p-4 rounded-xl bg-nubian-sand/30 dark:bg-nubian-dark/30 hover:bg-nubian-gold/20 transition-colors">
+                    <i class="fas fa-cog text-2xl text-nubian-brown dark:text-nubian-gold mb-2"></i>
+                    <span class="text-sm font-medium">Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-nubian-earth rounded-2xl shadow-lg p-6 border border-nubian-gold/20">
+            <h3 class="text-xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">Recent Activity</h3>
+            <div id="recent-activity" class="space-y-4">
+                <p class="text-nubian-earth dark:text-nubian-sand text-center py-8">No recent activity to display</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-nubian-dark text-nubian-sand py-8 border-t border-nubian-gold/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-nubian-sand/60">&copy; 2024 Gnouby Perfumes. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Edit Profile Modal -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+    <div id="edit-profile-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-md">
+            <div class="p-6 border-b border-nubian-gold/20 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel">Edit Profile</h3>
+                <button id="close-modal" class="text-nubian-earth dark:text-nubian-sand hover:text-nubian-terracotta transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="edit-profile-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-1">Full Name</label>
+                    <input type="text" id="edit-name" required class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-1">Email</label>
+                    <input type="email" id="edit-email" required class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-1">Phone</label>
+                    <input type="tel" id="edit-phone" class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-nubian-brown dark:text-nubian-sand mb-1">Address</label>
+                    <textarea id="edit-address" rows="3" class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand resize-none"></textarea>
+                </div>
+                
+                <div class="border-t border-nubian-sand/30 dark:border-nubian-dark/30 pt-4 mt-4">
+                    <h4 class="text-sm font-semibold text-nubian-brown dark:text-nubian-gold mb-3">Change Password (Optional)</h4>
+                    <div class="space-y-3">
+                        <input type="password" id="current-password" placeholder="Current Password" class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand">
+                        <input type="password" id="new-password" placeholder="New Password" class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand">
+                        <input type="password" id="confirm-password" placeholder="Confirm New Password" class="w-full px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg focus:outline-none focus:border-nubian-gold bg-white dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand">
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" id="cancel-edit" class="flex-1 py-2 border border-nubian-sand dark:border-nubian-dark text-nubian-earth dark:text-nubian-sand rounded-lg hover:bg-nubian-sand dark:hover:bg-nubian-dark transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 py-2 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold hover:text-nubian-dark transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/account.js"></script>
+</body>
+</html>

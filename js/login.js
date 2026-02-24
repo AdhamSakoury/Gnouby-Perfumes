@@ -41,7 +41,7 @@ function handleLogin(e) {
     
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const remember = document.getElementById('remember-me')?.checked || false;
+    const remember = document.getElementById('remember-me')?.checked ?? true; // Default to true if checkbox not found
     
     let isValid = true;
     
@@ -57,11 +57,17 @@ function handleLogin(e) {
     
     if (!isValid) return;
     
-    const result = login(email, password);
+    // Debug: Check if users exist
+    console.log('Attempting login with:', email);
+    console.log('Users in storage:', getUsers());
+    
+    // Call login - it handles setCurrentUser internally
+    const result = login(email, password, remember);
+    
+    console.log('Login result:', result);
+    console.log('Current user after login:', getCurrentUser());
     
     if (result.success) {
-        setCurrentUser(result.user, remember);
-        
         const btn = document.getElementById('submit-btn');
         btn.innerHTML = '<i class="fas fa-check mr-2"></i> Success!';
         btn.classList.remove('bg-nubian-brown');
@@ -74,4 +80,53 @@ function handleLogin(e) {
     } else {
         showError('email-error', result.message);
     }
+}
+
+// ==========================================
+// VALIDATION HELPERS
+// ==========================================
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.classList.remove('hidden');
+    }
+}
+
+function clearAllErrors() {
+    document.querySelectorAll('[id$="-error"]').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+    });
+}
+
+// ==========================================
+// DARK MODE
+// ==========================================
+
+function initDarkMode() {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const icon = darkModeToggle?.querySelector('i');
+    
+    if (localStorage.getItem('darkMode') === 'true' || 
+        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
+    }
+    
+    darkModeToggle?.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('darkMode', isDark);
+        if (icon) {
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        }
+    });
 }

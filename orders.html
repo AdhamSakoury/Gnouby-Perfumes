@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>My Orders | Gnouby Perfumes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nubian: {
+                            gold: '#F5A623',
+                            brown: '#1B4D4D',
+                            sand: '#E6D5B8',
+                            terracotta: '#C65D3B',
+                            earth: '#5D4E37',
+                            cream: '#F5F0E6',
+                            dark: '#1A1510',
+                            primary: '#1B4D4D',
+                            accent: '#F5A623'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; }
+        
+        .order-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-delivered { background: #DEF7EC; color: #03543F; }
+        .status-shipped { background: #E1EFFE; color: #1E429F; }
+        .status-processing { background: #FEF3C7; color: #92400E; }
+        .status-pending { background: #F3F4F6; color: #374151; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+
+        .dark .status-delivered { background: #065F46; color: #6EE7B7; }
+        .dark .status-shipped { background: #1E3A8A; color: #93C5FD; }
+        .dark .status-processing { background: #78350F; color: #FCD34D; }
+        .dark .status-pending { background: #374151; color: #D1D5DB; }
+        .dark .status-cancelled { background: #7F1D1D; color: #FCA5A5; }
+
+        .order-card { transition: all 0.3s ease; }
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 15px;
+            top: 30px;
+            bottom: 0;
+            width: 2px;
+            background: #E6D5B8;
+        }
+        .dark .timeline-line { background: #5D4E37; }
+
+        .timeline-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+        }
+        .timeline-dot.active { background: #1B4D4D; color: #F5A623; }
+        .dark .timeline-dot.active { background: #F5A623; color: #1A1510; }
+        .timeline-dot.completed { background: #10B981; color: white; }
+        .timeline-dot.pending { background: #E6D5B8; color: #5D4E37; }
+        .dark .timeline-dot.pending { background: #5D4E37; color: #E6D5B8; }
+
+        .filter-btn { transition: all 0.2s ease; }
+        .filter-btn.active { background: #1B4D4D; color: white; }
+        .dark .filter-btn.active { background: #F5A623; color: #1A1510; }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #F5A623;
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.2);
+        }
+
+        .order-item-image { transition: transform 0.3s ease; }
+        .order-item-image:hover { transform: scale(1.05); }
+
+        #user-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(245, 166, 35, 0.3);
+            z-index: 50;
+        }
+        .dark #user-dropdown { background: #2C2416; }
+        #user-dropdown.hidden { display: none; }
+
+        #user-dropdown a, #user-dropdown button {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #1B4D4D;
+            text-decoration: none;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .dark #user-dropdown a, .dark #user-dropdown button { color: #E6D5B8; }
+        #user-dropdown a:hover, #user-dropdown button:hover { background: #E6D5B8; }
+        .dark #user-dropdown a:hover, .dark #user-dropdown button:hover { background: #1A1510; }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: #1B4D4D;
+            color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .toast.active { transform: translateX(0); }
+        .toast.error { background: #EF4444; }
+        .dark .toast { background: #F5A623; color: #1A1510; }
+        .dark .toast.error { background: #EF4444; color: white; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay:not(.hidden) { opacity: 1; visibility: visible; }
+        
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .dark .modal-content { background: #2C2416; }
+        .modal-overlay:not(.hidden) .modal-content { transform: scale(1) translateY(0); }
+
+        .pagination-btn { transition: all 0.2s ease; }
+        .pagination-btn:hover:not(:disabled) { background: #F5A623; color: #1A1510; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination-btn.active { background: #1B4D4D; color: white; }
+        .dark .pagination-btn.active { background: #F5A623; color: #1A1510; }
+    </style>
+</head>
+<body class="bg-nubian-cream dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors duration-300 min-h-screen">
+    
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/90 dark:bg-nubian-dark/90 backdrop-blur-md border-b border-nubian-gold/30 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+            <a href="index.html" class="logo-container flex items-center">
+                <img src="images/logo-light.png" alt="Gnouby Perfumes" class="logo-image logo-light h-10 w-auto">
+                <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="logo-image logo-dark h-10 w-auto hidden dark:block">
+                <div class="brand-text ml-3">
+                    <span class="brand-name block text-xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel">Gnouby</span>
+                    <span class="brand-tagline block text-xs tracking-widest text-nubian-earth dark:text-nubian-sand">PERFUMES</span>
+                </div>
+            </a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Home</a>
+                    <a href="perfumes.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Perfumes</a>
+                    <a href="wishlist.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">Wishlist</a>
+                    <a href="cart.html" class="text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors relative">
+                        Cart <span id="cart-count" class="absolute -top-2 -right-2 bg-nubian-terracotta text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-nubian-sand dark:hover:bg-nubian-earth transition-colors">
+                        <i class="fas fa-moon text-nubian-brown dark:text-nubian-gold text-xl"></i>
+                    </button>
+
+                    <!-- Auth Buttons (shown when logged out) -->
+                    <div id="auth-buttons" class="hidden">
+                        <a href="login.html" class="px-4 py-2 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-colors">Login</a>
+                    </div>
+
+                    <!-- User Menu (shown when logged in) -->
+                    <div id="user-menu" class="hidden relative">
+                        <button id="user-dropdown-btn" class="flex items-center space-x-2 text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span id="user-name" class="font-medium"></span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div id="user-dropdown" class="hidden absolute top-full right-0 mt-2 bg-white dark:bg-[#2C2416] rounded-lg shadow-lg border border-nubian-sand dark:border-nubian-dark overflow-hidden min-w-[160px] z-50">
+                            <a href="account.html" class="block px-4 py-3 text-nubian-dark dark:text-nubian-light hover:bg-nubian-sand dark:hover:bg-nubian-dark transition-colors text-sm">
+                                My Account
+                            </a>
+                            <a href="orders.html" class="block px-4 py-3 bg-[#e8dcc8] dark:bg-[#3d3426] text-nubian-dark dark:text-nubian-light transition-colors text-sm font-medium">
+                                My Orders
+                            </a>
+                            <hr class="border-nubian-sand dark:border-nubian-dark">
+                            <button onclick="logout()" class="w-full text-left px-4 py-3 text-[#c75b39] dark:text-[#e07a5f] hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        
+        <!-- Login Prompt -->
+        <div id="login-prompt" class="hidden text-center py-20">
+            <i class="fas fa-user-lock text-6xl text-nubian-gold mb-4"></i>
+            <h2 class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold mb-4 font-cinzel">Please Log In</h2>
+            <p class="text-nubian-earth dark:text-nubian-sand mb-6">You need to be logged in to view your orders.</p>
+            <a href="login.html" class="px-6 py-3 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-colors">Go to Login</a>
+        </div>
+
+        <!-- Orders Content -->
+        <div id="orders-content" class="hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-4xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel mb-2">My Orders</h1>
+                    <p class="text-nubian-earth dark:text-nubian-sand">Track and manage your purchases</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="total-orders-badge" class="px-4 py-2 bg-nubian-gold/20 text-nubian-brown dark:text-nubian-gold rounded-full text-sm font-semibold">0 Orders</span>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white dark:bg-nubian-earth rounded-xl p-4 border border-nubian-gold/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-nubian-earth dark:text-nubian-sand">Total Orders</span>
+                        <i class="fas fa-shopping-bag text-nubian-gold"></i>
+                    </div>
+                    <p id="stat-total" class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold">0</p>
+                </div>
+                <div class="bg-white dark:bg-nubian-earth rounded-xl p-4 border border-nubian-gold/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-nubian-earth dark:text-nubian-sand">Processing</span>
+                        <i class="fas fa-clock text-yellow-500"></i>
+                    </div>
+                    <p id="stat-processing" class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold">0</p>
+                </div>
+                <div class="bg-white dark:bg-nubian-earth rounded-xl p-4 border border-nubian-gold/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-nubian-earth dark:text-nubian-sand">Shipped</span>
+                        <i class="fas fa-shipping-fast text-blue-500"></i>
+                    </div>
+                    <p id="stat-shipped" class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold">0</p>
+                </div>
+                <div class="bg-white dark:bg-nubian-earth rounded-xl p-4 border border-nubian-gold/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-nubian-earth dark:text-nubian-sand">Delivered</span>
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <p id="stat-delivered" class="text-2xl font-bold text-nubian-brown dark:text-nubian-gold">0</p>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="bg-white dark:bg-nubian-earth rounded-xl p-4 mb-6 border border-nubian-gold/20">
+                <div class="flex flex-col lg:flex-row gap-4">
+                    <div class="flex-1 relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nubian-gold">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="search-orders" placeholder="Search by order ID or product name..." 
+                            class="w-full pl-10 pr-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg bg-transparent search-input transition-all">
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button class="filter-btn active px-4 py-2 rounded-lg border border-nubian-sand dark:border-nubian-dark text-sm font-medium" data-filter="all">All</button>
+                        <button class="filter-btn px-4 py-2 rounded-lg border border-nubian-sand dark:border-nubian-dark text-sm font-medium" data-filter="pending">Pending</button>
+                        <button class="filter-btn px-4 py-2 rounded-lg border border-nubian-sand dark:border-nubian-dark text-sm font-medium" data-filter="processing">Processing</button>
+                        <button class="filter-btn px-4 py-2 rounded-lg border border-nubian-sand dark:border-nubian-dark text-sm font-medium" data-filter="shipped">Shipped</button>
+                        <button class="filter-btn px-4 py-2 rounded-lg border border-nubian-sand dark:border-nubian-dark text-sm font-medium" data-filter="delivered">Delivered</button>
+                    </div>
+
+                    <select id="sort-orders" class="px-4 py-2 border-2 border-nubian-sand dark:border-nubian-dark rounded-lg bg-transparent focus:outline-none focus:border-nubian-gold">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="highest">Highest Amount</option>
+                        <option value="lowest">Lowest Amount</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            <div id="orders-list" class="space-y-4"></div>
+
+            <!-- Empty State -->
+            <div id="empty-orders" class="hidden text-center py-16">
+                <i class="fas fa-box-open text-6xl text-nubian-sand mb-4"></i>
+                <h3 class="text-xl font-bold text-nubian-brown dark:text-nubian-gold mb-2 font-cinzel">No Orders Found</h3>
+                <p class="text-nubian-earth dark:text-nubian-sand mb-6">You haven't placed any orders yet.</p>
+                <a href="perfumes.html" class="inline-flex items-center px-6 py-3 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-colors">Start Shopping</a>
+            </div>
+
+            <!-- No Search Results -->
+            <div id="no-search-results" class="hidden text-center py-16">
+                <i class="fas fa-search text-6xl text-nubian-sand mb-4"></i>
+                <h3 class="text-xl font-bold text-nubian-brown dark:text-nubian-gold mb-2 font-cinzel">No Matches Found</h3>
+                <p class="text-nubian-earth dark:text-nubian-sand">Try adjusting your search or filters.</p>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="hidden flex justify-center items-center gap-2 mt-8"></div>
+        </div>
+    </main>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal-overlay" class="modal-overlay hidden"></div>
+    <div id="order-details-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 pointer-events-none">
+        <div class="modal-content pointer-events-auto">
+            <div class="p-6 border-b border-nubian-gold/20 flex justify-between items-center sticky top-0 bg-white dark:bg-nubian-earth z-10 rounded-t-2xl">
+                <div>
+                    <h3 id="modal-order-id" class="text-xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel"></h3>
+                    <p id="modal-order-date" class="text-sm text-nubian-earth dark:text-nubian-sand"></p>
+                </div>
+                <button id="close-modal" class="text-nubian-earth dark:text-nubian-sand hover:text-nubian-terracotta transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <div>
+                    <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-4">Order Status</h4>
+                    <div id="order-timeline" class="relative pl-8 space-y-6"></div>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-4">Order Items</h4>
+                    <div id="modal-order-items" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-nubian-sand/20 dark:bg-nubian-dark/20 rounded-lg p-4">
+                    <h4 class="font-semibold text-nubian-brown dark:text-nubian-sand mb-2">Shipping Address</h4>
+                    <p id="modal-shipping-address" class="text-nubian-earth dark:text-nubian-sand text-sm"></p>
+                </div>
+
+                <div class="border-t border-nubian-sand dark:border-nubian-dark pt-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-nubian-earth dark:text-nubian-sand">
+                            <span>Subtotal</span>
+                            <span id="modal-subtotal"></span>
+                        </div>
+                        <div class="flex justify-between text-nubian-earth dark:text-nubian-sand">
+                            <span>Shipping</span>
+                            <span>Free</span>
+                        </div>
+                        <div id="modal-discount-row" class="hidden flex justify-between text-nubian-terracotta">
+                            <span>Discount</span>
+                            <span id="modal-discount"></span>
+                        </div>
+                        <div class="flex justify-between text-xl font-bold text-nubian-brown dark:text-nubian-gold pt-2 border-t border-nubian-sand dark:border-nubian-dark">
+                            <span>Total</span>
+                            <span id="modal-total"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button id="reorder-btn" class="flex-1 py-3 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-colors">
+                        <i class="fas fa-redo mr-2"></i>Reorder All
+                    </button>
+                    <button id="track-order-btn" class="flex-1 py-3 border border-nubian-gold text-nubian-gold rounded-lg hover:bg-nubian-gold hover:text-nubian-dark transition-colors">
+                        <i class="fas fa-truck mr-2"></i>Track Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>  
+
+    <!-- Footer -->
+    <footer class="bg-nubian-dark text-nubian-sand py-8 border-t border-nubian-gold/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-nubian-sand/60">&copy; 2024 Gnouby Perfumes. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/orders.js"></script>
+</body>
+</html>

@@ -477,7 +477,9 @@ function displayPerfumes() {
 
     // Add event listeners
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const id = parseInt(this.dataset.id);
             if (typeof addToCart === 'function' && addToCart(id)) {
                 this.innerHTML = '<i class="fas fa-check mr-1"></i> Added';
@@ -489,7 +491,9 @@ function displayPerfumes() {
     });
 
     document.querySelectorAll('.add-to-wishlist-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const id = parseInt(this.dataset.id);
             if (typeof addToWishlist === 'function' && addToWishlist(id)) {
                 this.innerHTML = '<i class="fas fa-check"></i>';
@@ -515,8 +519,14 @@ function generateStars(rating) {
     return stars;
 }
 
-// Placeholder functions
+// Placeholder functions - will be overridden by cart.js and wishlist.js if loaded
 if (typeof updateAuthUI !== 'function') window.updateAuthUI = function() {};
 if (typeof updateCartCount !== 'function') window.updateCartCount = function() {};
-if (typeof addToCart !== 'function') window.addToCart = function(id) { return true; };
-if (typeof addToWishlist !== 'function') window.addToWishlist = function(id) { return true; };
+if (typeof addToCart !== 'function') window.addToCart = function(id) { 
+    console.warn('addToCart not loaded yet');
+    return true; 
+};
+if (typeof addToWishlist !== 'function') window.addToWishlist = function(id) { 
+    console.warn('addToWishlist not loaded yet');
+    return true; 
+};

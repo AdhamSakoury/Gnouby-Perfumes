@@ -342,6 +342,10 @@
             background: #10B981;
         }
 
+        .toast.error {
+            background: #EF4444;
+        }
+
         .dark .toast {
             background: #F5A623;
             color: #1A1510;
@@ -476,67 +480,6 @@
             max-width: 100%;
             overflow-x: hidden;
         }
-
-        /* User dropdown styles */
-        #user-dropdown {
-            position: absolute;
-            right: 0;
-            top: 100%;
-            margin-top: 0.5rem;
-            min-width: 200px;
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(245, 166, 35, 0.3);
-            z-index: 50;
-        }
-
-        .dark #user-dropdown {
-            background: #2C2416;
-            border-color: rgba(245, 166, 35, 0.3);
-        }
-
-        #user-dropdown.hidden {
-            display: none;
-        }
-
-        #user-dropdown a,
-        #user-dropdown button {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: #1B4D4D;
-            text-decoration: none;
-            transition: all 0.2s;
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 0.875rem;
-        }
-
-        .dark #user-dropdown a,
-        .dark #user-dropdown button {
-            color: #E6D5B8;
-        }
-
-        #user-dropdown a:hover,
-        #user-dropdown button:hover {
-            background: #E6D5B8;
-        }
-
-        .dark #user-dropdown a:hover,
-        .dark #user-dropdown button:hover {
-            background: #1A1510;
-        }
-
-        #user-dropdown button.text-red-500 {
-            color: #EF4444;
-        }
-
-        #user-dropdown button.text-red-500:hover {
-            background: #FEE2E2;
-        }
     </style>
 </head>
 <body class="bg-nubian-cream dark:bg-nubian-dark text-nubian-dark dark:text-nubian-sand transition-colors duration-300 min-h-screen">
@@ -544,16 +487,15 @@
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="sidebar-overlay lg:hidden"></div>
 
-    <!-- Navigation -->
     <nav class="fixed w-full z-50 bg-white/90 dark:bg-nubian-dark/90 backdrop-blur-md border-b border-nubian-gold/30 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <a href="index.html" class="logo-container flex items-center">
-                    <img src="images/logo-light.png" alt="Gnouby Perfumes" class="h-10 w-auto dark:hidden">
-                    <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="h-10 w-auto hidden dark:block">
-                    <div class="ml-3">
-                        <span class="block text-xl font-bold text-nubian-brown dark:text-nubian-gold font-cinzel">Gnouby</span>
-                        <span class="block text-xs tracking-widest text-nubian-earth dark:text-nubian-sand">PERFUMES</span>
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo-light.png" alt="Gnouby Perfumes" class="logo-image logo-light">
+                    <img src="images/logo-dark.png" alt="Gnouby Perfumes" class="logo-image logo-dark">
+                    <div class="brand-text">
+                        <span class="brand-name">Gnouby</span>
+                        <span class="brand-tagline">Perfumes</span>
                     </div>
                 </a>
 
@@ -571,30 +513,26 @@
                         <i class="fas fa-moon text-nubian-brown dark:text-nubian-gold text-xl"></i>
                     </button>
 
-                    <!-- Auth Buttons (shown when logged out) -->
-                    <div id="auth-buttons" class="hidden md:block">
-                        <a href="login.html" class="px-4 py-2 bg-nubian-brown text-white rounded-lg hover:bg-nubian-gold transition-colors">
-                            Login
-                        </a>
-                    </div>
+                <div id="auth-buttons" class="flex items-center space-x-3">
+                    <a href="login.html" class="px-4 py-2 text-nubian-brown dark:text-nubian-gold border border-nubian-brown dark:border-nubian-gold rounded-lg hover:bg-nubian-brown hover:text-white transition-all">Login</a>
+                </div>
 
-                    <!-- User Menu (shown when logged in) -->
-                    <div id="user-menu" class="hidden relative">
+                    <div id="user-menu" class="relative">
                         <button id="user-dropdown-btn" class="flex items-center space-x-2 text-nubian-brown dark:text-nubian-sand hover:text-nubian-gold transition-colors">
                             <i class="fas fa-user-circle text-2xl"></i>
                             <span id="user-name" class="font-medium"></span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
-                        <div id="user-dropdown" class="hidden">
-                            <a href="account.html" class="block px-4 py-2 hover:bg-nubian-sand dark:hover:bg-nubian-dark transition-colors">
-                                <i class="fas fa-user mr-2"></i>My Account
+                        <div id="user-dropdown" class="hidden absolute top-full right-0 mt-2 bg-white dark:bg-nubian-dark rounded-lg shadow-lg border border-nubian-sand dark:border-nubian-dark overflow-hidden min-w-[160px] z-50">
+                            <a href="account.html" class="block px-4 py-3 text-nubian-dark dark:text-nubian-light hover:bg-nubian-sand dark:hover:bg-nubian-dark transition-colors">
+                                My Account
                             </a>
-                            <a href="orders.html" class="block px-4 py-2 hover:bg-nubian-sand dark:hover:bg-nubian-dark transition-colors">
-                                <i class="fas fa-box mr-2"></i>My Orders
+                            <a href="orders.html" class="block px-4 py-3 bg-[#e8dcc8] dark:bg-[#3d3426] text-nubian-dark dark:text-nubian-light transition-colors">
+                                My Orders
                             </a>
                             <hr class="border-nubian-sand dark:border-nubian-dark">
-                            <button onclick="logout()" class="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            <button onclick="logout()" class="w-full text-left px-4 py-3 text-[#c75b39] dark:text-[#e07a5f] hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                Logout
                             </button>
                         </div>
                     </div>
@@ -777,9 +715,12 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
     <script src="js/data.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
     <script src="js/perfumes.js"></script>
+    <script src="js/navigation.js"></script>
 </body>
 </html>

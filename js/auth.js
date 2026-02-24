@@ -1,4 +1,4 @@
-// Authentication functions
+// Authentication functions - COMPATIBLE VERSION
 const AUTH_KEY = 'gnouby_auth';
 const USERS_KEY = 'gnouby_users';
 
@@ -16,7 +16,13 @@ function saveUser(user) {
     const index = users.findIndex(u => u.id === user.id || u.email.toLowerCase() === user.email.toLowerCase());
     
     if (index !== -1) {
-        users[index] = { ...users[index], ...user };
+        // Update existing user - preserve password if not provided
+        const existingUser = users[index];
+        users[index] = {
+            ...existingUser,
+            ...user,
+            password: user.password || existingUser.password
+        };
     } else {
         users.push(user);
     }
@@ -34,22 +40,20 @@ function getCurrentUser() {
     
     const user = JSON.parse(userJson);
     
-    // Sync with users array to get latest data (including profile updates)
+    // Sync with users array to get latest data
     const users = getUsers();
-    const fullUser = users.find(u => u.id === user.id);
+    const fullUser = users.find(u => u.id === user.id || u.email.toLowerCase() === user.email.toLowerCase());
     
     return fullUser || user;
 }
 
-function setCurrentUser(user, remember = true) { // Default to true for persistence
-    // Always store in localStorage for persistence
+function setCurrentUser(user, remember = true) {
+    // Store in localStorage for persistence
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     
     // Also store in sessionStorage as backup
     if (remember) {
         sessionStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    } else {
-        sessionStorage.removeItem(AUTH_KEY);
     }
 }
 
@@ -76,7 +80,7 @@ function register(fullName, email, password, phone = '', address = '') {
         fullName,
         name: fullName,
         email: email.toLowerCase(),
-        password, // Store password for profile updates
+        password,
         phone: phone || '',
         address: address || '',
         profilePhoto: null,
@@ -89,13 +93,13 @@ function register(fullName, email, password, phone = '', address = '') {
     users.push(newUser);
     saveUsers(users);
     
-    // Auto login - store full user
+    // Auto login
     setCurrentUser(newUser, true);
     
     return { success: true, user: newUser };
 }
 
-function login(email, password, remember = true) { // Default to true
+function login(email, password, remember = true) {
     const users = getUsers();
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
     
@@ -107,7 +111,7 @@ function login(email, password, remember = true) { // Default to true
         return { success: false, message: 'Incorrect password' };
     }
     
-    // Store full user with password
+    // Store full user with password for profile updates
     setCurrentUser(user, remember);
     
     return { success: true, user: user };
@@ -130,34 +134,65 @@ function updateAuthUI() {
     const user = getCurrentUser();
     const authButtons = document.getElementById('auth-buttons');
     const userMenu = document.getElementById('user-menu');
-    const userName = document.getElementById('user-name');
-    const mobileAuthLinks = document.getElementById('mobile-auth-links');
+    const userNameEl = document.getElementById('user-name');
+    const mobileAuthSection = document.getElementById('mobile-auth-section');
+    const mobileAuthButtons = document.getElementById('mobile-auth-buttons');
+    const mobileUserMenu = document.getElementById('mobile-user-menu');
+    const mobileUserName = document.getElementById('mobile-user-name');
     
     if (user) {
+        // Desktop: Show user menu, hide auth buttons
         if (authButtons) authButtons.classList.add('hidden');
         if (userMenu) {
             userMenu.classList.remove('hidden');
-            // Update user name in dropdown
-            const userNameEl = userMenu.querySelector('#user-name');
             if (userNameEl) userNameEl.textContent = user.fullName.split(' ')[0];
         }
-        if (userName) userName.textContent = user.fullName.split(' ')[0];
-        if (mobileAuthLinks) {
-            mobileAuthLinks.innerHTML = `
-                <a href="account.html" class="block py-2 text-nubian-gold">My Account</a>
-                <button onclick="logout()" class="block py-2 text-red-500 w-full text-left">Logout</button>
-            `;
+        
+        // Mobile: Show user menu, hide auth buttons
+        if (mobileAuthButtons) mobileAuthButtons.classList.add('hidden');
+        if (mobileUserMenu) {
+            mobileUserMenu.classList.remove('hidden');
+            if (mobileUserName) mobileUserName.textContent = user.fullName;
         }
     } else {
+        // Desktop: Show auth buttons, hide user menu
         if (authButtons) authButtons.classList.remove('hidden');
         if (userMenu) userMenu.classList.add('hidden');
-        if (mobileAuthLinks) {
-            mobileAuthLinks.innerHTML = `<a href="login.html" class="block py-2 text-nubian-gold">Login</a>`;
-        }
+        
+        // Mobile: Show auth buttons, hide user menu
+        if (mobileAuthButtons) mobileAuthButtons.classList.remove('hidden');
+        if (mobileUserMenu) mobileUserMenu.classList.add('hidden');
     }
 }
 
 // Initialize auth UI on all pages
 document.addEventListener('DOMContentLoaded', function() {
     updateAuthUI();
+    
+    // Setup user dropdown toggle
+    const userDropdownBtn = document.getElementById('user-dropdown-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+    
+    if (userDropdownBtn && userDropdown) {
+        userDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userDropdownBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Setup logout buttons
+    const logoutBtn = document.getElementById('logout-btn');
+    const logoutBtnNav = document.getElementById('logout-btn-nav');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+    
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    if (logoutBtnNav) logoutBtnNav.addEventListener('click', logout);
+    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', logout);
 });

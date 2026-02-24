@@ -496,6 +496,22 @@ function reorderItems(orderId) {
     }
 }
 
+// Add this to your loadAccountInfo function
+function loadAccountInfo() {
+    const user = getCurrentUser();
+    if (!user) return;
+    
+    // Existing code...
+    
+    // Update nav username
+    const navUserName = document.getElementById('nav-user-name');
+    if (navUserName) {
+        navUserName.textContent = user.fullName || user.name || 'User';
+    }
+    
+    // Rest of existing code...
+}
+
 // Add fade-in animation styles dynamically
 const style = document.createElement('style');
 style.textContent = `

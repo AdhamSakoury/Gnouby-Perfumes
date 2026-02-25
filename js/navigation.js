@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     const darkModeToggleMobile = document.getElementById('dark-mode-toggle-mobile');
     
+    // Initialize dark mode icons on page load
+    updateDarkModeIcons();
+    
     // Mobile menu toggle
     if (mobileMenuBtn && mobileMenu) {
         mobileMenuBtn.addEventListener('click', function() {
@@ -47,8 +50,14 @@ function toggleDarkMode() {
     const isDark = html.classList.toggle('dark');
     localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
     
-    // Update icons
+    // Update icons immediately
+    updateDarkModeIcons();
+}
+
+function updateDarkModeIcons() {
+    const isDark = document.documentElement.classList.contains('dark');
     const icons = document.querySelectorAll('#dark-mode-toggle i, #dark-mode-toggle-mobile i');
+    
     icons.forEach(icon => {
         if (isDark) {
             icon.classList.remove('fa-moon');
@@ -60,7 +69,7 @@ function toggleDarkMode() {
     });
 }
 
-// Check for saved dark mode preference
+// Check for saved dark mode preference BEFORE DOMContentLoaded
 if (localStorage.getItem('darkMode') === 'dark' || 
     (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.classList.add('dark');

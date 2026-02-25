@@ -1,5 +1,6 @@
 // Cart functionality
 const CART_KEY = 'gnouby_cart';
+const PROMO_KEY = 'gnouby_promo'; // Store applied promo
 
 function getCart() {
     return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
@@ -7,6 +8,26 @@ function getCart() {
 
 function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
+
+// Get saved promo from localStorage
+function getSavedPromo() {
+    const promo = localStorage.getItem(PROMO_KEY);
+    return promo ? JSON.parse(promo) : null;
+}
+
+// Save promo to localStorage
+function savePromo(promoData) {
+    if (promoData) {
+        localStorage.setItem(PROMO_KEY, JSON.stringify(promoData));
+    } else {
+        localStorage.removeItem(PROMO_KEY);
+    }
+}
+
+// Clear promo (call after order placed)
+function clearPromo() {
+    localStorage.removeItem(PROMO_KEY);
 }
 
 function addToCart(perfumeId, quantity = 1) {
@@ -168,13 +189,22 @@ function updateCartSummary() {
     if (!subtotalEl || !totalEl) return;
     
     const subtotal = getCartTotal();
+    const savedPromo = getSavedPromo();
     let discount = 0;
     
-    const appliedPromo = localStorage.getItem('applied_promo');
-    if (appliedPromo && promoCodes[appliedPromo]) {
-        discount = subtotal * promoCodes[appliedPromo];
+    if (savedPromo) {
+        discount = subtotal * savedPromo.discount;
         if (discountRow) discountRow.classList.remove('hidden');
         if (discountAmount) discountAmount.textContent = '-$' + discount.toFixed(2);
+        
+        // Show applied promo UI
+        const promoInputSection = document.getElementById('promo-input-section');
+        const promoAppliedSection = document.getElementById('promo-applied-section');
+        const promoCodeDisplay = document.getElementById('promo-code-display');
+        
+        if (promoInputSection) promoInputSection.classList.add('hidden');
+        if (promoAppliedSection) promoAppliedSection.classList.remove('hidden');
+        if (promoCodeDisplay) promoCodeDisplay.textContent = savedPromo.code;
     } else {
         if (discountRow) discountRow.classList.add('hidden');
     }
@@ -185,28 +215,75 @@ function updateCartSummary() {
     totalEl.textContent = '$' + total.toFixed(2);
 }
 
-function applyPromoCode(code) {
-    const upperCode = code.toUpperCase();
+function applyCartPromoCode(code) {
+    const upperCode = code.toUpperCase().trim();
     const messageEl = document.getElementById('promo-message');
     
+    if (!upperCode) {
+        if (messageEl) {
+            messageEl.textContent = 'Please enter a promo code';
+            messageEl.className = 'text-sm mt-2 text-nubian-terracotta';
+        }
+        return { valid: false };
+    }
+    
+    if (typeof promoCodes === 'undefined') {
+        console.error('promoCodes not loaded');
+        return { valid: false };
+    }
+    
     if (promoCodes.hasOwnProperty(upperCode)) {
-        localStorage.setItem('applied_promo', upperCode);
+        const promoData = {
+            code: upperCode,
+            discount: promoCodes[upperCode]
+        };
+        
+        savePromo(promoData); // Save to localStorage
+        
         if (messageEl) {
-            messageEl.textContent = 'Promo code applied successfully!';
+            const percent = Math.round(promoCodes[upperCode] * 100);
+            messageEl.textContent = `${upperCode} applied! ${percent}% off`;
             messageEl.className = 'text-sm mt-2 text-green-600';
-            messageEl.classList.remove('hidden');
         }
+        
         updateCartSummary();
-        return { valid: true, discount: promoCodes[upperCode] };
+        return { valid: true, ...promoData };
     } else {
-        localStorage.removeItem('applied_promo');
+        clearPromo(); // Remove any existing promo
+        
         if (messageEl) {
-            messageEl.textContent = 'Invalid promo code';
-            messageEl.className = 'text-sm mt-2 text-red-600';
-            messageEl.classList.remove('hidden');
+            messageEl.textContent = 'Invalid promo code. Try NUBIAN10, WELCOME15';
+            messageEl.className = 'text-sm mt-2 text-nubian-terracotta';
         }
+        
         updateCartSummary();
-        return { valid: false, discount: 0 };
+        return { valid: false };
+    }
+}
+
+function removeCartPromo() {
+    clearPromo();
+    updateCartSummary();
+    
+    // Reset UI
+    const promoInputSection = document.getElementById('promo-input-section');
+    const promoAppliedSection = document.getElementById('promo-applied-section');
+    const promoInput = document.getElementById('promo-code');
+    
+    if (promoInputSection) promoInputSection.classList.remove('hidden');
+    if (promoAppliedSection) promoAppliedSection.classList.add('hidden');
+    if (promoInput) {
+        promoInput.value = '';
+        promoInput.disabled = false;
+    }
+    
+    const messageEl = document.getElementById('promo-message');
+    if (messageEl) {
+        messageEl.textContent = 'Promo code removed';
+        messageEl.className = 'text-sm mt-2 text-nubian-earth';
+        setTimeout(() => {
+            messageEl.textContent = '';
+        }, 2000);
     }
 }
 
@@ -218,17 +295,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const applyPromoBtn = document.getElementById('apply-promo');
         const promoInput = document.getElementById('promo-code');
+        const removePromoBtn = document.getElementById('remove-promo');
         
         if (applyPromoBtn && promoInput) {
             applyPromoBtn.addEventListener('click', function() {
-                applyPromoCode(promoInput.value);
+                applyCartPromoCode(promoInput.value);
             });
             
             promoInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    applyPromoCode(promoInput.value);
+                    applyCartPromoCode(promoInput.value);
                 }
             });
+        }
+        
+        if (removePromoBtn) {
+            removePromoBtn.addEventListener('click', removeCartPromo);
         }
     }
 });

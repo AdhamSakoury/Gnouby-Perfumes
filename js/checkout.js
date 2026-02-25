@@ -1,25 +1,43 @@
-// Checkout page functionality
+// ==========================================
+// CHECKOUT PAGE FUNCTIONALITY
+// ==========================================
+
 let appliedPromo = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initDarkMode();
     
     if (!getCurrentUser()) {
-        document.getElementById('login-required').classList.remove('hidden');
+        document.getElementById('login-required')?.classList.remove('hidden');
         return;
     }
     
     const cart = getCart();
     if (cart.length === 0) {
-        document.getElementById('empty-cart').classList.remove('hidden');
+        document.getElementById('empty-cart')?.classList.remove('hidden');
         return;
     }
     
-    document.getElementById('checkout-content').classList.remove('hidden');
+    document.getElementById('checkout-content')?.classList.remove('hidden');
+    
+    // Load promo from cart.js localStorage
+    loadPromoFromCart();
     
     loadCheckoutSummary();
     initCheckoutForm();
 });
+
+// Load promo that was applied in cart
+function loadPromoFromCart() {
+    // Use the function from cart.js to get saved promo
+    if (typeof getSavedPromo === 'function') {
+        appliedPromo = getSavedPromo();
+    } else {
+        // Fallback if cart.js not loaded
+        const saved = localStorage.getItem('gnouby_promo');
+        appliedPromo = saved ? JSON.parse(saved) : null;
+    }
+}
 
 function loadCheckoutSummary() {
     const cart = getCart();
@@ -44,6 +62,11 @@ function loadCheckoutSummary() {
     }).join('');
     
     updateCheckoutTotals();
+    
+    // Show promo section if promo is applied
+    if (appliedPromo) {
+        showAppliedPromoInCheckout();
+    }
 }
 
 function updateCheckoutTotals() {
@@ -52,10 +75,13 @@ function updateCheckoutTotals() {
     
     if (appliedPromo) {
         discount = subtotal * appliedPromo.discount;
-        document.getElementById('checkout-discount-row').classList.remove('hidden');
+        document.getElementById('checkout-discount-row')?.classList.remove('hidden');
         document.getElementById('checkout-discount').textContent = `-$${discount.toFixed(2)}`;
+        
+        const percentEl = document.getElementById('promo-percent');
+        if (percentEl) percentEl.textContent = `(${Math.round(appliedPromo.discount * 100)}% off)`;
     } else {
-        document.getElementById('checkout-discount-row').classList.add('hidden');
+        document.getElementById('checkout-discount-row')?.classList.add('hidden');
     }
     
     const total = subtotal - discount;
@@ -64,86 +90,115 @@ function updateCheckoutTotals() {
     document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
 }
 
+// Show applied promo in checkout (read-only display)
+function showAppliedPromoInCheckout() {
+    const promoSection = document.getElementById('checkout-promo-section');
+    const promoCodeEl = document.getElementById('checkout-promo-code');
+    const promoDiscountEl = document.getElementById('checkout-promo-discount');
+    
+    if (promoSection) promoSection.classList.remove('hidden');
+    if (promoCodeEl) promoCodeEl.textContent = appliedPromo.code;
+    if (promoDiscountEl) {
+        const percent = Math.round(appliedPromo.discount * 100);
+        const subtotal = getCartTotal();
+        const savings = subtotal * appliedPromo.discount;
+        promoDiscountEl.textContent = `${percent}% off (save $${savings.toFixed(2)})`;
+    }
+}
+
+// ==========================================
+// CHECKOUT FORM & ORDER PROCESSING
+// ==========================================
+
 function initCheckoutForm() {
-    // Pre-fill user info
     const user = getCurrentUser();
     if (user) {
         document.getElementById('checkout-name').value = user.fullName || '';
         document.getElementById('checkout-email').value = user.email || '';
     }
     
-    // Place order button
     document.getElementById('place-order-btn')?.addEventListener('click', handlePlaceOrder);
 }
 
 function handlePlaceOrder() {
     clearAllErrors();
     
-    const name = document.getElementById('checkout-name').value.trim();
-    const email = document.getElementById('checkout-email').value.trim();
-    const phone = document.getElementById('checkout-phone').value.trim();
-    const address = document.getElementById('checkout-address').value.trim();
-    const city = document.getElementById('checkout-city').value.trim();
-    const postal = document.getElementById('checkout-postal').value.trim();
+    const formData = {
+        name: document.getElementById('checkout-name')?.value.trim(),
+        email: document.getElementById('checkout-email')?.value.trim(),
+        phone: document.getElementById('checkout-phone')?.value.trim(),
+        address: document.getElementById('checkout-address')?.value.trim(),
+        city: document.getElementById('checkout-city')?.value.trim(),
+        postal: document.getElementById('checkout-postal')?.value.trim()
+    };
     
+    if (!validateCheckoutForm(formData)) return;
+    
+    processOrder(formData);
+}
+
+function validateCheckoutForm(data) {
     let isValid = true;
     
-    if (!validateRequired(name)) {
+    if (!validateRequired(data.name)) {
         showError('name-error', 'Full name is required');
         isValid = false;
     }
     
-    if (!validateEmail(email)) {
+    if (!validateEmail(data.email)) {
         showError('email-error', 'Valid email is required');
         isValid = false;
     }
     
-    if (!validatePhone(phone)) {
+    if (!validatePhone(data.phone)) {
         showError('phone-error', 'Valid phone number is required');
         isValid = false;
     }
     
-    if (!validateRequired(address)) {
+    if (!validateRequired(data.address)) {
         showError('address-error', 'Address is required');
         isValid = false;
     }
     
-    if (!validateRequired(city)) {
+    if (!validateRequired(data.city)) {
         showError('city-error', 'City is required');
         isValid = false;
     }
     
-    if (!validateRequired(postal)) {
+    if (!validateRequired(data.postal)) {
         showError('postal-error', 'Postal code is required');
         isValid = false;
     }
     
-    if (!isValid) return;
+    return isValid;
+}
+
+function processOrder(shippingData) {
+    const btn = document.getElementById('place-order-btn');
     
-    // Get cart and calculate totals
-    const cart = getCart();
-    const subtotal = getCartTotal();
-    let discount = 0;
-    
-    if (appliedPromo) {
-        discount = subtotal * appliedPromo.discount;
+    // Set processing state
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
     }
     
+    const cart = getCart();
+    const subtotal = getCartTotal();
+    const discount = appliedPromo ? subtotal * appliedPromo.discount : 0;
     const total = subtotal - discount;
     
-    // Create order items from cart
     const orderItems = cart.map(item => {
         const perfume = perfumes.find(p => p.id === item.perfumeId);
         return {
             id: item.perfumeId,
-            name: perfume ? perfume.name : 'Unknown Product',
-            price: perfume ? perfume.price : 0,
-            image: perfume ? perfume.image : '',
+            name: perfume?.name || 'Unknown Product',
+            price: perfume?.price || 0,
+            image: perfume?.image || '',
             quantity: item.quantity
         };
     });
     
-    // Create order object
     const newOrder = {
         id: 'ORD-' + Date.now().toString(36).toUpperCase(),
         date: new Date().toISOString(),
@@ -153,43 +208,41 @@ function handlePlaceOrder() {
         discount: discount,
         total: total,
         shippingAddress: {
-            name: name,
-            street: address,
-            city: city,
-            state: '', // Add state field if you have it
-            zip: postal,
-            country: 'Egypt' // Change as needed
+            name: shippingData.name,
+            street: shippingData.address,
+            city: shippingData.city,
+            state: '',
+            zip: shippingData.postal,
+            country: 'Egypt'
         },
-        promoCode: appliedPromo ? appliedPromo.code : null
+        promoCode: appliedPromo?.code || null
     };
     
-    // Save order to user account
+    // Save order
     const user = getCurrentUser();
-    if (!user.orders) {
-        user.orders = [];
-    }
-    user.orders.unshift(newOrder); // Add to beginning of array
-    
-    // Update user in storage (using your auth.js functions)
+    if (!user.orders) user.orders = [];
+    user.orders.unshift(newOrder);
     updateCurrentUser(user);
-    saveUser(user); // Save to users array as well
+    saveUser(user);
     
-    // Simulate processing
-    const btn = document.getElementById('place-order-btn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
-    btn.disabled = true;
-    
+    // Simulate processing delay then complete
     setTimeout(() => {
         clearCart();
         
-        // Show success message
+        // CLEAR PROMO AFTER ORDER IS PLACED
+        if (typeof clearPromo === 'function') {
+            clearPromo(); // Use function from cart.js
+        } else {
+            localStorage.removeItem('gnouby_promo'); // Fallback
+        }
+        
+        // Show success and redirect
         if (typeof showToast === 'function') {
             showToast('Order placed successfully! Thank you for shopping with Gnouby Perfumes.', 'success');
         } else {
             alert('Order placed successfully! Thank you for shopping with Gnouby Perfumes.');
         }
         
-        // Redirect to orders page instead of index
         window.location.href = 'orders.html';
     }, 2000);
 }
@@ -203,14 +256,11 @@ function validateRequired(value) {
 }
 
 function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function validatePhone(phone) {
-    // Basic phone validation - at least 10 digits
-    const cleaned = phone.replace(/\D/g, '');
-    return cleaned.length >= 10;
+    return phone.replace(/\D/g, '').length >= 10;
 }
 
 function showError(elementId, message) {
@@ -229,46 +279,25 @@ function clearAllErrors() {
 }
 
 // ==========================================
-// CART FUNCTIONS (assuming these exist in your cart.js or similar)
-// ==========================================
-
-function getCart() {
-    return JSON.parse(localStorage.getItem('gnouby_cart') || '[]');
-}
-
-function getCartTotal() {
-    const cart = getCart();
-    return cart.reduce((total, item) => {
-        const perfume = perfumes.find(p => p.id === item.perfumeId);
-        return total + (perfume ? perfume.price * item.quantity : 0);
-    }, 0);
-}
-
-function clearCart() {
-    localStorage.removeItem('gnouby_cart');
-    if (typeof updateCartCount === 'function') {
-        updateCartCount();
-    }
-}
-
-// ==========================================
-// DARK MODE (if not already defined)
+// DARK MODE
 // ==========================================
 
 function initDarkMode() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     const icon = darkModeToggle?.querySelector('i');
     
-    if (localStorage.getItem('darkMode') === 'true' || 
-        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    const isDark = localStorage.getItem('darkMode') === 'true' || 
+        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    
+    if (isDark) {
         document.documentElement.classList.add('dark');
         if (icon) icon.classList.replace('fa-moon', 'fa-sun');
     }
     
     darkModeToggle?.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('darkMode', isDark);
+        const isNowDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('darkMode', isNowDark);
         if (icon) {
             icon.classList.toggle('fa-moon');
             icon.classList.toggle('fa-sun');

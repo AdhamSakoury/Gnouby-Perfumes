@@ -1,180 +1,76 @@
-// Account page functionality for Gnouby Perfumes - Enhanced Edition
+// Account page functionality for Gnouby Perfumes - Clean Version
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize dark mode
-    initDarkMode();
+    // Initialize shared features from external files
+    if (typeof initDarkMode === 'function') initDarkMode();
+    if (typeof updateCartCount === 'function') updateCartCount();
     
-    // Update cart count
-    updateCartCount();
+    // Check if auth is loaded
+    if (typeof getCurrentUser !== 'function') {
+        console.error('Auth library not loaded');
+        return;
+    }
     
-    // Check authentication
     const user = getCurrentUser();
     const loginPrompt = document.getElementById('login-prompt');
     const accountContent = document.getElementById('account-content');
     
     if (!user) {
-        // Show login prompt
         if (loginPrompt) loginPrompt.classList.remove('hidden');
         if (accountContent) accountContent.classList.add('hidden');
-        
-        // Redirect to login after 2 seconds
         setTimeout(() => {
             window.location.href = 'login.html?redirect=account.html';
         }, 2000);
     } else {
-        // Show account content
         if (loginPrompt) loginPrompt.classList.add('hidden');
         if (accountContent) accountContent.classList.remove('hidden');
-        
-        // Load account data
         loadAccountInfo();
         initEditProfileModal();
         initOrderHistory();
     }
 });
 
-// ==========================================
-// DARK MODE
-// ==========================================
-
-function initDarkMode() {
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-    const icon = darkModeToggle?.querySelector('i');
-    
-    // Check system preference or saved preference
-    if (localStorage.getItem('darkMode') === 'true' || 
-        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        if (icon) {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        }
-    }
-    
-    darkModeToggle?.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('darkMode', isDark);
-        if (icon) {
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-        }
-    });
-}
-
-// ==========================================
-// CART FUNCTIONS
-// ==========================================
-
-function getCart() {
-    return JSON.parse(localStorage.getItem('gnouby_cart') || '[]');
-}
-
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    const badge = document.getElementById('cart-count');
-    if (badge) {
-        badge.textContent = count;
-        badge.classList.toggle('hidden', count === 0);
-    }
-}
-
-function addToCart(product) {
-    let cart = getCart();
-    const existing = cart.find(item => item.id === product.id);
-    if (existing) {
-        existing.quantity = (existing.quantity || 1) + (product.quantity || 1);
-    } else {
-        cart.push({...product, quantity: product.quantity || 1});
-    }
-    localStorage.setItem('gnouby_cart', JSON.stringify(cart));
-    updateCartCount();
-}
-
-// ==========================================
-// TOAST NOTIFICATIONS
-// ==========================================
-
-function showToast(message, type = 'success') {
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) existingToast.remove();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type === 'error' ? 'error' : ''}`;
-    
-    const iconMap = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        info: 'info-circle'
-    };
-    
-    toast.innerHTML = `
-        <i class="fas fa-${iconMap[type] || 'info-circle'} text-lg"></i>
-        <span>${message}</span>
-    `;
-    document.body.appendChild(toast);
-    
-    // Trigger animation
-    requestAnimationFrame(() => {
-        toast.classList.add('active');
-    });
-    
-    setTimeout(() => {
-        toast.classList.remove('active');
-        setTimeout(() => toast.remove(), 400);
-    }, 3000);
-}
-
-// ==========================================
-// ACCOUNT PAGE FUNCTIONS
-// ==========================================
-
 function loadAccountInfo() {
     const user = getCurrentUser();
     if (!user) return;
     
-    // Update display elements
     const nameDisplay = document.getElementById('user-name-display');
     const emailDisplay = document.getElementById('user-email-display');
     const phoneDisplay = document.getElementById('user-phone-display');
     const addressDisplay = document.getElementById('user-address-display');
     const initialsDisplay = document.getElementById('user-initials');
+    const navUserName = document.getElementById('nav-user-name');
     
     const fullName = user.fullName || user.name || 'User';
     
     if (nameDisplay) nameDisplay.textContent = fullName;
-    if (emailDisplay) emailDisplay.textContent = user.email || 'user@example.com';
-    if (phoneDisplay) phoneDisplay.textContent = user.phone || '01118310245';
-    if (addressDisplay) addressDisplay.textContent = user.address || 'ش عمر بن الخطاب العجمي هانوفيل';
+    if (navUserName) navUserName.textContent = fullName;
     
-    // Set initials for avatar
+    if (emailDisplay) emailDisplay.textContent = user.email || 'Not provided';
+    if (phoneDisplay) phoneDisplay.textContent = user.phone ? user.phone : 'Not provided';
+    if (addressDisplay) addressDisplay.textContent = user.address ? user.address : 'Not provided';
+    
     if (initialsDisplay) {
         const initials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         initialsDisplay.textContent = initials || 'U';
     }
     
-    // Update wishlist count
     const wishlist = user.wishlist || [];
     const wishlistCount = document.getElementById('wishlist-count');
     if (wishlistCount) wishlistCount.textContent = wishlist.length;
     
-    // Update stats
     const orders = user.orders || [];
     updateStats(orders.length, wishlist.length);
     
-    // Load recent activity
     loadRecentActivity();
 }
 
 function updateStats(orderCount, wishlistCount) {
-    // Update the stats display in the header
-    const statsContainer = document.querySelector('.profile-header-glass .flex.flex-wrap');
-    if (statsContainer) {
-        const stats = statsContainer.querySelectorAll('.text-2xl');
-        if (stats[0]) stats[0].textContent = orderCount;
-        if (stats[1]) stats[1].textContent = wishlistCount;
-    }
+    const ordersStat = document.getElementById('stat-orders');
+    const wishlistStat = document.getElementById('stat-wishlist');
+    
+    if (ordersStat) ordersStat.textContent = orderCount || 0;
+    if (wishlistStat) wishlistStat.textContent = wishlistCount || 0;
 }
 
 function loadRecentActivity() {
@@ -243,8 +139,6 @@ function initEditProfileModal() {
         modal.classList.remove('hidden');
         overlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        
-        // Focus on first input
         setTimeout(() => document.getElementById('edit-name')?.focus(), 100);
     });
     
@@ -269,7 +163,7 @@ function initEditProfileModal() {
         
         const user = getCurrentUser();
         if (!user) {
-            showToast('User not found', 'error');
+            if (typeof showToast === 'function') showToast('User not found', 'error');
             return;
         }
         
@@ -281,49 +175,45 @@ function initEditProfileModal() {
         const newPassword = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
         
-        // Validation
         if (!fullName || !email) {
-            showToast('Name and email are required', 'error');
+            if (typeof showToast === 'function') showToast('Name and email are required', 'error');
             return;
         }
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            showToast('Please enter a valid email address', 'error');
+            if (typeof showToast === 'function') showToast('Please enter a valid email address', 'error');
             return;
         }
         
-        // Check email uniqueness
         if (email.toLowerCase() !== user.email.toLowerCase()) {
-            const users = getUsers();
+            const users = typeof getUsers === 'function' ? getUsers() : [];
             const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (existingUser) {
-                showToast('Email address is already in use', 'error');
+                if (typeof showToast === 'function') showToast('Email address is already in use', 'error');
                 return;
             }
         }
         
-        // Password validation
         if (newPassword) {
             if (!currentPassword) {
-                showToast('Current password is required to set a new password', 'error');
+                if (typeof showToast === 'function') showToast('Current password is required to set a new password', 'error');
                 return;
             }
             if (currentPassword !== user.password) {
-                showToast('Current password is incorrect', 'error');
+                if (typeof showToast === 'function') showToast('Current password is incorrect', 'error');
                 return;
             }
             if (newPassword.length < 6) {
-                showToast('New password must be at least 6 characters', 'error');
+                if (typeof showToast === 'function') showToast('New password must be at least 6 characters', 'error');
                 return;
             }
             if (newPassword !== confirmPassword) {
-                showToast('New passwords do not match', 'error');
+                if (typeof showToast === 'function') showToast('New passwords do not match', 'error');
                 return;
             }
         }
         
-        // Update user object
         const updatedUser = {
             ...user,
             fullName: fullName,
@@ -338,17 +228,13 @@ function initEditProfileModal() {
             updatedUser.password = newPassword;
         }
         
-        // Save changes using auth.js functions
-        saveUser(updatedUser);
-        updateCurrentUser(updatedUser);
+        if (typeof saveUser === 'function') saveUser(updatedUser);
+        if (typeof updateCurrentUser === 'function') updateCurrentUser(updatedUser);
         
-        // Reload display
         loadAccountInfo();
-        
         closeModal();
-        showToast('Profile updated successfully!', 'success');
+        if (typeof showToast === 'function') showToast('Profile updated successfully!', 'success');
         
-        // Clear password fields
         document.getElementById('current-password').value = '';
         document.getElementById('new-password').value = '';
         document.getElementById('confirm-password').value = '';
@@ -470,7 +356,7 @@ function reorderItems(orderId) {
     const user = getCurrentUser();
     const order = user?.orders?.find(o => o.id === orderId);
     
-    if (!order) return;
+    if (!order || typeof addToCart !== 'function') return;
     
     order.items.forEach(item => {
         addToCart({
@@ -483,10 +369,9 @@ function reorderItems(orderId) {
         });
     });
     
-    showToast('Items added to cart!', 'success');
-    updateCartCount();
+    if (typeof showToast === 'function') showToast('Items added to cart!', 'success');
+    if (typeof updateCartCount === 'function') updateCartCount();
     
-    // Close modal if open
     const ordersModal = document.getElementById('orders-modal');
     const ordersOverlay = document.getElementById('orders-overlay');
     if (ordersModal && !ordersModal.classList.contains('hidden')) {
@@ -496,23 +381,7 @@ function reorderItems(orderId) {
     }
 }
 
-// Add this to your loadAccountInfo function
-function loadAccountInfo() {
-    const user = getCurrentUser();
-    if (!user) return;
-    
-    // Existing code...
-    
-    // Update nav username
-    const navUserName = document.getElementById('nav-user-name');
-    if (navUserName) {
-        navUserName.textContent = user.fullName || user.name || 'User';
-    }
-    
-    // Rest of existing code...
-}
-
-// Add fade-in animation styles dynamically
+// Add fade-in animation styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fade-in {

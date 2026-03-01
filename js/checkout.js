@@ -5,7 +5,7 @@
 let appliedPromo = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    initDarkMode();
+    // Dark mode is handled by darkmode.js - DO NOT call initDarkMode() here
     
     if (!getCurrentUser()) {
         document.getElementById('login-required')?.classList.remove('hidden');
@@ -25,15 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadCheckoutSummary();
     initCheckoutForm();
+    initPaymentMethodSelection();
 });
 
 // Load promo that was applied in cart
 function loadPromoFromCart() {
-    // Use the function from cart.js to get saved promo
     if (typeof getSavedPromo === 'function') {
         appliedPromo = getSavedPromo();
     } else {
-        // Fallback if cart.js not loaded
         const saved = localStorage.getItem('gnouby_promo');
         appliedPromo = saved ? JSON.parse(saved) : null;
     }
@@ -63,7 +62,6 @@ function loadCheckoutSummary() {
     
     updateCheckoutTotals();
     
-    // Show promo section if promo is applied
     if (appliedPromo) {
         showAppliedPromoInCheckout();
     }
@@ -90,7 +88,6 @@ function updateCheckoutTotals() {
     document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
 }
 
-// Show applied promo in checkout (read-only display)
 function showAppliedPromoInCheckout() {
     const promoSection = document.getElementById('checkout-promo-section');
     const promoCodeEl = document.getElementById('checkout-promo-code');
@@ -104,6 +101,35 @@ function showAppliedPromoInCheckout() {
         const savings = subtotal * appliedPromo.discount;
         promoDiscountEl.textContent = `${percent}% off (save $${savings.toFixed(2)})`;
     }
+}
+
+// ==========================================
+// PAYMENT METHOD SELECTION
+// ==========================================
+
+function initPaymentMethodSelection() {
+    const radios = document.querySelectorAll('input[name="payment"]');
+    
+    radios.forEach(radio => {
+        radio.addEventListener('change', updatePaymentBorders);
+    });
+    
+    updatePaymentBorders();
+}
+
+function updatePaymentBorders() {
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+        const label = radio.closest('label');
+        if (!label) return;
+        
+        if (radio.checked) {
+            label.classList.remove('border-nubian-sand', 'dark:border-nubian-dark');
+            label.classList.add('border-nubian-gold');
+        } else {
+            label.classList.remove('border-nubian-gold');
+            label.classList.add('border-nubian-sand', 'dark:border-nubian-dark');
+        }
+    });
 }
 
 // ==========================================
@@ -176,7 +202,6 @@ function validateCheckoutForm(data) {
 function processOrder(shippingData) {
     const btn = document.getElementById('place-order-btn');
     
-    // Set processing state
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
         btn.disabled = true;
@@ -218,25 +243,21 @@ function processOrder(shippingData) {
         promoCode: appliedPromo?.code || null
     };
     
-    // Save order
     const user = getCurrentUser();
     if (!user.orders) user.orders = [];
     user.orders.unshift(newOrder);
     updateCurrentUser(user);
     saveUser(user);
     
-    // Simulate processing delay then complete
     setTimeout(() => {
         clearCart();
         
-        // CLEAR PROMO AFTER ORDER IS PLACED
         if (typeof clearPromo === 'function') {
-            clearPromo(); // Use function from cart.js
+            clearPromo();
         } else {
-            localStorage.removeItem('gnouby_promo'); // Fallback
+            localStorage.removeItem('gnouby_promo');
         }
         
-        // Show success and redirect
         if (typeof showToast === 'function') {
             showToast('Order placed successfully! Thank you for shopping with Gnouby Perfumes.', 'success');
         } else {
@@ -275,32 +296,5 @@ function clearAllErrors() {
     document.querySelectorAll('[id$="-error"]').forEach(el => {
         el.classList.add('hidden');
         el.textContent = '';
-    });
-}
-
-// ==========================================
-// DARK MODE
-// ==========================================
-
-function initDarkMode() {
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-    const icon = darkModeToggle?.querySelector('i');
-    
-    const isDark = localStorage.getItem('darkMode') === 'true' || 
-        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
-    if (isDark) {
-        document.documentElement.classList.add('dark');
-        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
-    }
-    
-    darkModeToggle?.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isNowDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('darkMode', isNowDark);
-        if (icon) {
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-        }
     });
 }

@@ -1,45 +1,73 @@
-// Dark mode functionality with logo switching
+// ==========================================
+// DARK MODE - SINGLE SOURCE OF TRUTH
+// ==========================================
+
 const DARK_MODE_KEY = 'gnouby_dark_mode';
 
-function initDarkMode() {
-    const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
-    if (isDark) {
+// ==========================================
+// EARLY APPLICATION (Prevent flash)
+// ==========================================
+
+(function applyEarly() {
+    const saved = localStorage.getItem(DARK_MODE_KEY);
+    if (saved === 'true') {
         document.documentElement.classList.add('dark');
     }
+})();
+
+// ==========================================
+// DOM READY INITIALIZATION
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.classList.contains('dark');
+    updateAllUI(isDark);
+    bindAllToggles();
+});
+
+// ==========================================
+// TOGGLE HANDLING
+// ==========================================
+
+function bindAllToggles() {
+    // Find ALL dark mode toggle buttons on the page
+    const toggles = document.querySelectorAll('#dark-mode-toggle, #dark-mode-toggle-mobile');
     
-    updateLogo(isDark);
+    toggles.forEach(toggle => {
+        toggle.addEventListener('click', handleToggle);
+    });
+}
+
+function handleToggle() {
+    const html = document.documentElement;
+    const willBeDark = !html.classList.contains('dark');
     
-    const toggleBtn = document.getElementById('dark-mode-toggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', toggleDarkMode);
+    if (willBeDark) {
+        html.classList.add('dark');
+    } else {
+        html.classList.remove('dark');
     }
-}
-
-function toggleDarkMode() {
-    const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem(DARK_MODE_KEY, isDark.toString());
     
-    updateLogo(isDark);
-    updateIcon(isDark);
+    localStorage.setItem(DARK_MODE_KEY, willBeDark.toString());
+    updateAllUI(willBeDark);
 }
 
-function updateLogo(isDark) {
-    const logoImg = document.getElementById('logo-img');
-    if (logoImg) {
-        logoImg.src = isDark ? 'images/logo-dark.png' : 'images/logo-light.png';
+// ==========================================
+// UI UPDATES
+// ==========================================
+
+function updateAllUI(isDark) {
+    // Update ALL toggle icons (desktop + mobile)
+    const icons = document.querySelectorAll('#dark-mode-toggle i, #dark-mode-toggle-mobile i');
+    icons.forEach(icon => {
+        icon.className = isDark 
+            ? 'fas fa-sun text-nubian-gold text-xl'
+            : 'fas fa-moon text-nubian-brown text-xl';
+    });
+    
+    // Update logo if exists
+    const logo = document.getElementById('logo-img');
+    if (logo) {
+        logo.src = isDark ? 'images/logo-dark.png' : 'images/logo-light.png';
     }
-}
-
-function updateIcon(isDark) {
-    const icon = document.querySelector('#dark-mode-toggle i');
-    if (icon) {
-        icon.className = isDark ? 'fas fa-sun text-nubian-gold text-xl' : 'fas fa-moon text-nubian-brown text-xl';
-    }
-}
-
-// Initialize on DOM ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDarkMode);
-} else {
-    initDarkMode();
 }

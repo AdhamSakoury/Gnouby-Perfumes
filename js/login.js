@@ -1,6 +1,9 @@
-// Login page functionality
+// ==========================================
+// LOGIN PAGE FUNCTIONALITY
+// ==========================================
+
 document.addEventListener('DOMContentLoaded', function() {
-    initDarkMode();
+    // Dark mode is handled by darkmode.js - DO NOT call initDarkMode() here
     
     // Check if already logged in
     if (getCurrentUser()) {
@@ -41,7 +44,7 @@ function handleLogin(e) {
     
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const remember = document.getElementById('remember-me')?.checked ?? true; // Default to true if checkbox not found
+    const remember = document.getElementById('remember-me')?.checked ?? true;
     
     let isValid = true;
     
@@ -57,15 +60,7 @@ function handleLogin(e) {
     
     if (!isValid) return;
     
-    // Debug: Check if users exist
-    console.log('Attempting login with:', email);
-    console.log('Users in storage:', getUsers());
-    
-    // Call login - it handles setCurrentUser internally
     const result = login(email, password, remember);
-    
-    console.log('Login result:', result);
-    console.log('Current user after login:', getCurrentUser());
     
     if (result.success) {
         const btn = document.getElementById('submit-btn');
@@ -103,30 +98,5 @@ function clearAllErrors() {
     document.querySelectorAll('[id$="-error"]').forEach(el => {
         el.classList.add('hidden');
         el.textContent = '';
-    });
-}
-
-// ==========================================
-// DARK MODE
-// ==========================================
-
-function initDarkMode() {
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-    const icon = darkModeToggle?.querySelector('i');
-    
-    if (localStorage.getItem('darkMode') === 'true' || 
-        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
-    }
-    
-    darkModeToggle?.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('darkMode', isDark);
-        if (icon) {
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-        }
     });
 }

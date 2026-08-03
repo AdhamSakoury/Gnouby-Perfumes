@@ -1,6 +1,8 @@
 // Register page functionality
 document.addEventListener('DOMContentLoaded', function() {
-    initDarkMode();
+    if (typeof initDarkMode === 'function') {
+        initDarkMode();
+    }
     
     // Check if already logged in
     if (getCurrentUser()) {
